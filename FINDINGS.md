@@ -1,6 +1,6 @@
 # Findings
 
-Short, human-readable notes on what we've learned. Newest section first within each heading. Details and sources are in `CLAUDE.md`.
+Short, human-readable notes on what we've learned. Newest section first within each heading. Details and sources are in `AGENTS.md`.
 
 ## 🚨 Big picture
 - Valio gives us **only read APIs**: price and availability. There is **no order, cart or approval API**.
