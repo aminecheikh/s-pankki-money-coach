@@ -7,6 +7,11 @@ Short, human-readable notes on what we've learned. Details and sources are in `A
 - Prizes: 1st €2,000, 2nd €1,000, 3rd €500, as **Airbnb gift cards**. 53 signups.
 - Why: a consumer product that's easy to demo on a phone, decent prizes, and a lot of real-world reach (S-mobiili is used weekly by 1 in 3 Finnish adults).
 
+## 👥 How we work
+- Everyone vibe codes across the whole repo. There's no frontend/backend split.
+- Pull before you start, push small and often, and post one line in chat about what you're working on.
+- Repo: https://github.com/aminecheikh/s-pankki-money-coach (renamed from `trading-agent-hackjunction-2026`).
+
 ## 🎯 How we get scored (each 20%)
 - Teaching people about money (financial literacy)
 - Originality of the AI

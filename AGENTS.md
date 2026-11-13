@@ -80,6 +80,14 @@ Mobile web app (chat + cards + charts)
 - 1–2 business representatives who own the customer problem
 
 ## 8. Working in this repo
+
+**How the team works:** everyone vibe codes with AI assistants (Claude Code, Codex) across the whole codebase, with no fixed ownership of frontend vs. backend. That means:
+- **One simple stack and one language where possible,** so any person or assistant can work anywhere.
+- **Pull before you start, and push small and often.** Several people and agents edit the same files, and big diffs collide.
+- **Say in the team chat what you're working on** (one line) to avoid two people building the same thing.
+- **Assistants: read `AGENTS.md` and `FINDINGS.md` first, and check `git log` for recent changes** before making big edits. Don't rewrite code someone else just wrote without a reason.
+- **Never leave `main` broken.** Run the app and the tests before pushing.
+
 - **Secrets:** API keys go in `.env` (gitignored), never in code or commits. **This repo is public on GitHub.**
 - **Data:** the dataset goes in `data/` (gitignored). Don't commit it.
 - **Commits:** conventional commits (`feat:`, `fix:`, `docs:`, …). Use a branch per feature (`feat/...`) and keep `main` working.
