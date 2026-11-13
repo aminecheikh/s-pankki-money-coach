@@ -4,3 +4,4 @@ An AI coach that lets people chat with their own bank transactions, built for th
 
 - Quick summary: [FINDINGS.md](FINDINGS.md)
 - Full context for the team and AI assistants: [AGENTS.md](AGENTS.md)
+- Get the data: `./scripts/fetch_data.sh`

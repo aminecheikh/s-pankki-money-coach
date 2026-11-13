@@ -35,11 +35,26 @@ Short, human-readable notes on what we've learned. Details and sources are in `A
 - Make it **mobile-first** and styled like S-mobiili.
 
 ## 📊 Data
-- ⚠️ **We don't have the dataset yet.** The link didn't come through when the challenge text was copied. Get it from the Junction platform challenge page.
-- It's described as "a large synthetic transaction dataset modelled on real S-Bank data".
+- **Get it:** run `./scripts/fetch_data.sh` (no Git LFS needed). It downloads into `data/`, which isn't committed.
+- **3.6M transactions, 5,100 customers, 24 months** (Oct 2024 – Sep 2026), one account each.
+- **Columns:** customer, date, category, amount (negative = money out), balance after, transaction type, merchant code, MCC code.
+- **15 categories**, e.g. Housing, Utilities, Groceries, Restaurants, Transportation, Health, Home & Tech, Lifestyle, Travel, Entertainment, Salary, Invest.
+- **Merchants are anonymous codes** (`MRC-RES-0087`), not names like "Starbucks".
+- **Everyone has a salary,** usually paid on the 15th. Median about €3,175/month.
+- **69% of customers drop below €0 at some point** → a strong case for "safe to spend".
+- **781 young adults (18–30),** the group S-Bank cares about most.
+- To spot "coffee" leaks, **use the amount, not the MCC code.** In this synthetic data, all restaurant types have the same typical amount. 18% of restaurant spends are under €8.
+- **Customers 5001–5100 look special:** all the crazy one-off spends (> €10k) are theirs. Ask the mentors.
+- **The three baskets map fairly well onto categories:** Housing and Utilities = regular bills, Health and big Home & Tech = irregular must-pays, Restaurants, Entertainment and Lifestyle = everyday leaks. (Draft, see `AGENTS.md`.)
+- **Bonus data:** 200 mortgage applications (150 approved, 50 rejected, with reasons). A possible "am I ready to buy a home?" feature.
+- **264 customers move most of their salary out** ("Salary Sweep"), probably to another bank. That fits the multi-bank (PSD2) bonus angle.
+- **Gotchas:** the CSVs start with a BOM (read with `utf-8-sig`), and timestamps look like `03OCT24:09:04:04`, so use the `tx_date` column instead.
+- **Build tip:** the file is too big for the app. Pre-process it into small per-customer data for a few demo personas.
 
 ## ❓ Open questions for mentors
-- Where's the dataset, and what's in it?
+- Are customers 5001–5100 an intentional outlier or persona group?
+- Do they agree with our mapping of categories to the three baskets (e.g. is Groceries a "must" and Transportation a "leak")?
+- What is "Salary Sweep": a transfer to another bank?
 - Is there an S-mobiili design system or brand guide we can follow?
 - Are there rules about which AI providers can touch bank data (e.g. EU hosting)?
 - Finnish UI, English UI, or both?

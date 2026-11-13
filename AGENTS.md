@@ -39,10 +39,57 @@ S-Bank (S-Pankki) is Finland's 4th-largest bank: 3.5M customers, and its **S-mob
 
 ## 4. Data
 
-- **A large synthetic transaction dataset modelled on the structure of real S-Bank data.**
-- ⚠️ **We don't have it yet.** The challenge page says "You may find the data through here", but the link didn't come through in the copy-paste. **Get the link from the Junction platform challenge page** and record the location and format here.
-- Once we have it, document: file format and size, columns, date range, number of customers, how categories and merchants are represented, and quirks.
-- Open data for benchmarks: Statistics Finland publishes household consumption statistics. Its PxWeb API is at `pxdata.stat.fi` (not yet verified for our needs).
+**Source:** https://github.com/hackjunction/Junction-2026-S-pankki. Run `./scripts/fetch_data.sh` to download everything into `data/` (gitignored). It needs no Git LFS and verifies the checksum of the big file. All numbers below were profiled with DuckDB on 2026-11-14.
+
+### Files
+| File | Size | Contents |
+|---|---|---|
+| `tx_junction_transactions.csv` | 346 MB, **3,626,755 rows** | `customer_id, bank_account_id, tx_date, tx_timestamp, category, tx_amount_eur, balance_after_eur, transaction_type, merchant_id, mcc_code` |
+| `tx_customers_junction.csv` | 5,100 rows | `customer_id, customer_postal_code, customer_age` |
+| `mtg_negotiation_history.csv` | 3,452 events | Mortgage application event log per `mortgage_customer_id` (C0004 …) |
+| `mtg_tx_customer_link_and_final_mtg_infio.csv` | 200 rows | Links `mortgage_customer_id` → `customer_id`, plus the final decision, loan, equity, LTV and required income |
+
+### Gotchas
+- **Every CSV starts with a UTF-8 BOM.** Read with `utf-8-sig` (Python), or the first column name gets a stray character.
+- `tx_timestamp` uses a SAS-style format: `03OCT24:09:04:04`. Use `tx_date` (ISO) for dates.
+- `mcc_code` and `merchant_id` must be read as **strings**: they're empty for non-purchases, and postal codes have leading zeros.
+- **Merchants are anonymised codes** (`MRC-GRO-0035`), not names. 515 merchants; the middle part encodes the category (`GRO`, `RES`, `TRN`, `ENT`, `HEA`, `HMT`, `LIF`, `TRV`).
+- Amounts: **negative = money out, positive = money in.** `balance_after_eur` is the running account balance.
+- Synthetic quirk: **amounts don't differ by MCC within a category.** E.g. restaurants (5812), bars (5813) and fast food (5814) all have a median of €23.5. To spot "coffee-sized" leaks, use **amount** (18% of restaurant transactions are under €8), not MCC.
+- **Customers `CUST05001`–`CUST05100` look special.** All 20 one-off spends over €10k are in this group (e.g. a €30,935 Home & Tech purchase). Probably a planted outlier or persona group; ask the mentors.
+
+### Shape of the data
+- **5,100 customers, 1 account each**, covering **2024-10-01 → 2026-09-30** (24 months). Median 700 transactions per customer (range 148–1,543).
+- Ages 18–90 (median 44), with **781 young adults aged 18–30**, the target group S-Bank mentioned. 290 postal codes.
+- **Everyone has a salary**, paid monthly, usually on the 15th. Median ~€3,175/month (10th–90th percentile: €1,876–€5,264).
+- **3,526 of 5,100 customers (69%) drop below €0 at some point.** The median customer's lowest balance is −€126. That's a strong hook for "safe to spend".
+
+### Categories → our three baskets (draft mapping, to be confirmed)
+| Category | Rows | Median € | Behaviour in data | Basket (draft) |
+|---|---|---|---|---|
+| Housing | 113k | 1,037 | Exactly 1×/month, amount stable (CV 0.03) | 1. Mandatory regular |
+| Utilities | 343k | 50 | ~3×/month, amount varies | 1. Mandatory regular |
+| Groceries | 869k | 64 | Frequent | 1. Mandatory regular (a necessity, but its size can be influenced) |
+| Transportation | 627k | 41 | Frequent: transit, taxi, fuel, parking | 1. or 3., depending on type (taxi = leak?) |
+| Health | 152k | 54 | Irregular, high variance (CV 0.79) | 2. Mandatory irregular |
+| Home & Tech | 115k | 111 | Irregular, big spikes (604 purchases > €2k) | 2. Mandatory irregular (large) or 3. (gadgets) |
+| Restaurants | 759k | 23.5 | Very frequent, small | 3. Everyday leaks |
+| Entertainment | 303k | 35 | Frequent | 3. Everyday leaks |
+| Lifestyle | 111k | 103 | Shopping (clothes, sports, books, …) | 3. Everyday leaks |
+| Travel | 65k | 130 | Occasional, large | 3. Discretionary (or its own "goals" bucket) |
+| Invest Deposit / Withdraw | 36k / 0.5k | 296 | 1,500 customers invest monthly | Savings, not spending |
+| Salary / Other Income | 122k / 6k | 3,362 | Monthly income | Income |
+| Salary Sweep | 6k | 3,877 | 264 customers move most of their salary out | Transfer, probably to another bank → PSD2 multi-bank angle |
+
+### Extra: mortgage data (optional angle)
+- 200 mortgage applications linked to transaction customers: **150 approved, 50 rejected.** Rejection reasons: `insufficient_income`, `insufficient_equity`, `insufficient_collateral`, `existing_debt`.
+- Possible feature: a "**am I ready to buy a home?**" coach that uses real spending to show the gap to the `required_monthly_income` and equity. A stretch goal only.
+
+### Benchmarks
+- Statistics Finland publishes household consumption statistics. Its PxWeb API is at `pxdata.stat.fi` (not yet verified). We can also benchmark **within the dataset**: same age group or postal area, which is cheap and works offline.
+
+### Practical implication for the build
+- 346 MB is too big to ship to a phone or load per request. **Pre-process once** (DuckDB or Python) into compact per-customer data, e.g. a SQLite/DuckDB file or JSON for a few **demo personas** (a young adult with leaks, someone who often overdraws, someone saving for a home, …).
 
 ## 5. Our strategy (draft, decide as a team)
 
@@ -67,7 +114,9 @@ Mobile web app (chat + cards + charts)
 ```
 
 ## 6. Open questions for mentors
-- Where's the dataset, and what exactly is in it (categories, merchant names, income transactions, multiple accounts)?
+- Are customers `CUST05001`–`CUST05100` (all the > €10k spikes) an intentional outlier or persona group?
+- Do they agree with our category → three-baskets mapping (§4)? Especially Groceries, Transportation, and Home & Tech.
+- What exactly is "Salary Sweep": a transfer to the customer's account at another bank?
 - Is there an S-mobiili design system or brand guidelines we can follow for the look and feel?
 - How should "safe to spend" treat irregular mandatory costs? Is there a buffer method they prefer?
 - Are there limits on which LLM providers we can use for bank data (e.g. EU hosting) for the feasibility story?
@@ -89,7 +138,7 @@ Mobile web app (chat + cards + charts)
 - **Never leave `main` broken.** Run the app and the tests before pushing.
 
 - **Secrets:** API keys go in `.env` (gitignored), never in code or commits. **This repo is public on GitHub.**
-- **Data:** the dataset goes in `data/` (gitignored). Don't commit it.
+- **Data:** run `./scripts/fetch_data.sh` to download the dataset into `data/` (gitignored). Never commit it.
 - **Commits:** conventional commits (`feat:`, `fix:`, `docs:`, …). Use a branch per feature (`feat/...`) and keep `main` working.
 - **Correctness:** every function that produces a number (totals, baskets, safe-to-spend, simulations) gets tests with known inputs. The LLM must not do arithmetic.
 - **One source of truth:** put all agent instructions in `AGENTS.md`. `CLAUDE.md` only imports it, so don't add content there.
