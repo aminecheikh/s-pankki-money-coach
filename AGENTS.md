@@ -151,3 +151,4 @@ Candidate building blocks (not yet decided):
 | Date | Decision | Why |
 |---|---|---|
 | 2026-11-14 | Repo created; context captured in this file | — |
+| 2026-11-14 | **Challenge chosen: Valio Aimo "Trusted Trade Agents"** (over MariaDB "Wikipedia Through Time") | Prizes €4,000 / €1,500 / €1,000 vs. €1,000 / €500 / €250. About €62 per signup vs. €43, even with 105 vs. 41 signups. Open-ended design is easier to stand out in, and we already have the data mapped. |

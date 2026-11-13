@@ -2,6 +2,12 @@
 
 Short, human-readable notes on what we've learned. Newest section first within each heading. Details and sources are in `AGENTS.md`.
 
+## 🏁 Decision
+- **We're doing the Valio Aimo challenge: "Trusted Trade Agents".**
+- Prizes: 1st €4,000, 2nd €1,500, 3rd €1,000.
+- It's the most popular challenge (105 signups). To stand out we need a clear trust and guardrails model and a working demo, not just a catalog chatbot.
+- We considered the MariaDB "Wikipedia Through Time" challenge (41 signups, €1,000 / €500 / €250). It had less competition but much smaller prizes.
+
 ## 🚨 Big picture
 - Valio gives us **only read APIs**: price and availability. There is **no order, cart or approval API**.
 - So the order flow, permissions, human approval and audit log are **ours to design and mock**. That gap is the actual challenge.
