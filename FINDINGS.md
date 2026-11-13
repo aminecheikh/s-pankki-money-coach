@@ -1,63 +1,51 @@
 # Findings
 
-Short, human-readable notes on what we've learned. Newest section first within each heading. Details and sources are in `AGENTS.md`.
+Short, human-readable notes on what we've learned. Details and sources are in `AGENTS.md`.
 
 ## 🏁 Decision
-- **We're doing the Valio Aimo challenge: "Trusted Trade Agents".**
-- Prizes: 1st €4,000, 2nd €1,500, 3rd €1,000.
-- It's the most popular challenge (105 signups). To stand out we need a clear trust and guardrails model and a working demo, not just a catalog chatbot.
-- We considered the MariaDB "Wikipedia Through Time" challenge (41 signups, €1,000 / €500 / €250). It had less competition but much smaller prizes.
+- **We're doing S-Pankki's "Personal Economic Trainer"**: an AI coach that lets people chat with their own bank transactions.
+- Prizes: 1st €2,000, 2nd €1,000, 3rd €500, as **Airbnb gift cards**. 53 signups.
+- Why: a consumer product that's easy to demo on a phone, decent prizes, and a lot of real-world reach (S-mobiili is used weekly by 1 in 3 Finnish adults).
 
-## 🚨 Big picture
-- Valio gives us **only read APIs**: price and availability. There is **no order, cart or approval API**.
-- So the order flow, permissions, human approval and audit log are **ours to design and mock**. That gap is the actual challenge.
-- Scored core: (1) search for products, prices and availability, (2) inquiry → order at fixed prices, (3) what the agent may do alone vs. what needs a human.
-- Optional extras: delivery reliability and sustainability comparison, substitutions, an audit trail of what the agent did and why.
+## 🎯 How we get scored (each 20%)
+- Teaching people about money (financial literacy)
+- Originality of the AI
+- A clear mobile UX
+- Feasibility (could a bank actually ship this?)
+- How easily it fits into the S-mobiili app
 
-## 🔌 APIs
-- Every `/api/*` call needs the header `X-API-Key`. The key goes in `.env`. **Never commit it, because the repo is public.**
-- `POST /api/price` and `POST /api/availability` take 1–1000 product ids per call.
-- The `customer` field is required but ignored. Any value works.
-- **Don't fetch prices for the whole catalog.** There are hidden rate limits. Filter with the local product data first, then call the APIs for the shortlist only.
-- The API spec (`/openapi.json`) is behind the portal login. A copy is in `docs/valio_openapi.json`.
+## 🧺 The idea they care about most: three baskets
+- **Mandatory and regular:** rent, bills, subscriptions.
+- **Mandatory and irregular:** a broken washing machine, car repair, dentist.
+- **Everyday leaks:** coffees, snacks, takeaway.
+- "Help people understand where their money really goes" is what they say will "go far with us".
 
-## 💶 Prices
-- Prices are **per one sales unit** (one carton, one box, …).
-- Use `comparisonPrice` (per **L** or **KG**) to compare packs of different sizes.
-- `catalogPrice` = what we pay. `listPrice` = the price before discount. `netPriceFound` = a customer-specific price applied.
-- `error: true` = no price found.
+## 💡 Our angle (draft)
+- **Trustworthy numbers:** the AI never makes up figures. Real calculations do the maths, and the app shows how each number was worked out.
+- The home screen shows **"safe to spend this week"**, with a buffer for surprise costs and an explanation of why.
+- Charts are **generated from your question**, not a fixed dashboard (they want a "MyData" spirit).
+- **"What if" sliders**, e.g. "cut dining out by 20%" → saving per year.
+- A **"What kind of spender am I?"** profile.
+- Stretch: compare with similar Finnish households (Statistics Finland), and a multi-bank view (PSD2).
+- Make it **mobile-first** and styled like S-mobiili.
 
-## 📦 Availability
-- **Stock** products are in Valio's own warehouse and have real quantities. Some are effectively unlimited (`9999999999`), others limited (e.g. `51`).
-- **Terminal** products ship from the supplier and the quantity is unknown (always `999999`). They're a riskier choice.
-- Empty `scheduleLines` = can't be delivered at all.
-- `availableDate` = the earliest possible delivery date. It doesn't change with the date we ask for.
-- `closingTime` = the order cut-off.
-- ⚠️ Some Terminal products show a cut-off **in the past** but still offer a future delivery date. This looks like a mock bug; ask the mentors.
-
-## 🥛 Product data (17,546 products)
-- It's a static file. Download it once with `./scripts/fetch_data.sh`.
-- Names are always in Finnish and almost always in English. Search both (Finnish example: `laktoositon` = lactose-free).
-- Diet claims include `FREE_FROM_LACTOSE` (4,178 products), `FREE_FROM_GLUTEN`, `VEGAN`, `VEGETARIAN`, `LOW_LACTOSE`.
-- Allergens are marked **CONTAINS**, **MAY_CONTAIN**, **UNDECLARED** or **FREE_FROM**. This is good for the allergen-safe scenario.
-- Sustainability labels include EU Organic, Svanen, Rainforest Alliance, MSC, ASC, Fair Trade, EU Ecolabel, KRAV, and Finnish origin marks.
-- Valio's own substitute mapping covers **only 189 products**, so we need our own substitution logic.
-- `allowedLotSize`: the order quantity must be a multiple of it.
-- Category codes, unit codes and temperature codes come **without names**.
-
-## 🌱 Extra datasets
-- **Delivery reliability** is a score from 0 to 1 for 4,425 products. 291 of them score below 0.9.
-- **Carbon footprint** is in kg CO2-eq per kg. It's a **category average** rather than a per-product measurement.
-
-## 🧪 Worked example: 1,000 L lactose-free milk by Monday
-- 68 matching products in the catalog.
-- The cheapest is €1.33/L (Valio skimmed milk 1 L, Terminal).
-- The cheapest from Valio's own stock is €1.40/L (Valio Eila 3%).
-- An Arla option is €2.57/L with only 51 in stock.
+## 📊 Data
+- ⚠️ **We don't have the dataset yet.** The link didn't come through when the challenge text was copied. Get it from the Junction platform challenge page.
+- It's described as "a large synthetic transaction dataset modelled on real S-Bank data".
 
 ## ❓ Open questions for mentors
-- Is the past cut-off time on Terminal products intentional?
-- Do they prefer MCP, OpenAPI, or both for the agent interface?
-- Are there names for the category, unit and temperature codes?
-- What spend limits and approval roles are realistic for a hotel chain or a hospital?
-- Will the webshop test accounts matter for the demo?
+- Where's the dataset, and what's in it?
+- Is there an S-mobiili design system or brand guide we can follow?
+- Are there rules about which AI providers can touch bank data (e.g. EU hosting)?
+- Finnish UI, English UI, or both?
+
+## 🗂️ Challenges we compared (for the record)
+| Challenge | Prizes | Signups | Why not |
+|---|---|---|---|
+| **S-Pankki: Economic Trainer** ✅ | €2,000 / €1,000 / €500 (gift cards) | 53 | **Chosen** |
+| Valio: Trusted Trade Agents | €4,000 / €1,500 / €1,000 | 105 | Most crowded, and it's B2B back-office work that's harder to demo |
+| Espoo: Rethinking Recruitment | €1,500 / €1,000 / €500 | 41 | Mostly concept and design work |
+| Context.dev: Real-Time Web | €2,000 / €500 / swag | 36 | Basically 1st place or nothing |
+| MariaDB: Wikipedia Through Time | €1,000 / €500 / €250 | 41 | Smaller prizes |
+| AstraZeneca: Equal Care | €1,000 / €750 / €250 | 53 | Lowest prizes, little data |
+| Aalto: Humanoid robot | €2,000 | 13 | No robotics person on the team |
