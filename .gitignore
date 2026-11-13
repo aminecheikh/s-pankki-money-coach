@@ -1,0 +1,22 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# downloaded challenge datasets (large, re-fetch with scripts/fetch_data.sh)
+data/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+
+# node
+node_modules/
+
+# os / editors
+.DS_Store
+.idea/
+.vscode/
